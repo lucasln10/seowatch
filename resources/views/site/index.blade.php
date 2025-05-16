@@ -13,18 +13,26 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Nome</th>
+                    <th>Titulo</th>
                     <th>URL</th>
                     <th>Data de Criação</th>
+                    <th>Ações</th> <!-- nova coluna -->
                 </tr>
             </thead>
             <tbody>
                 @foreach($sites as $site)
                 <tr>
                     <td>{{ $site->id }}</td>
-                    <td>{{ $site->name }}</td>
+                    <td>{{ $site->title ?: 'Sem título' }}</td>
                     <td><a href="{{ $site->url }}" target="_blank">{{ $site->url }}</a></td>
                     <td>{{ $site->created_at->format('d/m/Y H:i') }}</td>
+                    <td>
+                        <form action="{{ route('site.deletar', $site->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este site?');">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                        </form>
+                    </td>
                 </tr>
                 @endforeach
             </tbody>

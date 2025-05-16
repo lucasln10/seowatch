@@ -16,9 +16,12 @@ class PasswordResetLinkController extends Controller
      */
     public function create(Request $request): Response
     {
-        return Inertia::render('auth/forgot-password', [
+        return Inertia::render(
+            'auth/forgot-password',
+            [
             'status' => $request->session()->get('status'),
-        ]);
+            ]
+        );
     }
 
     /**
@@ -28,9 +31,11 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
+        $request->validate(
+            [
             'email' => 'required|email',
-        ]);
+            ]
+        );
 
         Password::sendResetLink(
             $request->only('email')

@@ -8,5 +8,4 @@ class FormularioAdicionarSite extends Model
 {
     private $nome;
     private $cpfCnpj;
-
 }

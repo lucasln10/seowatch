@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditResult;
 use App\Models\Site;
 use Illuminate\Http\Request;
 
@@ -14,7 +15,7 @@ class SiteController extends Controller
 {
     public function index()
     {
-        $sites = Site::all();
+        $sites = Site::with('auditResult')->get();
         return view('site.index', compact('sites'));
     }
 
@@ -35,8 +36,6 @@ class SiteController extends Controller
         $site->update($validate);
         return redirect('/index')->with('success','Site editado com sucesso.');
     }
-
-
 
     public function adicionarSite()
     {
@@ -80,5 +79,14 @@ class SiteController extends Controller
         }
         $site->delete();
         return redirect('/index')->with('success','Site excluido com sucesso.');
+    }
+
+    public function mostrar($id)
+    {
+        CrawlSeoData::dispatch($site->url, $site->id);
+        $site = Site::findOrFail($id);
+        $audit = AuditResult::where('site_id', $site->id)->latest()->first();
+
+        return view('site.mostrar', compact('site','audit'));
     }
 }

@@ -10,4 +10,10 @@ class Site extends Model
     use HasFactory;
 
     protected $fillable = ['title', 'url'];
+
+    public function auditResult()
+    {
+        return $this->hasOne(AuditResult::class);
+    }
 }
+

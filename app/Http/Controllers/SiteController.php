@@ -3,18 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditResult;
 use App\Models\Site;
 use Illuminate\Http\Request;
+use App\Jobs\CrawlSeoData;
 
-use function Pest\Laravel\delete;
-use function PHPUnit\Framework\isNan;
-use function PHPUnit\Framework\isNull;
 
 class SiteController extends Controller
 {
     public function index()
     {
-        $sites = Site::all();
+        $sites = Site::with('auditResults')->get();
         return view('site.index', compact('sites'));
     }
 
@@ -35,8 +34,6 @@ class SiteController extends Controller
         $site->update($validate);
         return redirect('/index')->with('success','Site editado com sucesso.');
     }
-
-
 
     public function adicionarSite()
     {
@@ -80,5 +77,14 @@ class SiteController extends Controller
         }
         $site->delete();
         return redirect('/index')->with('success','Site excluido com sucesso.');
+    }
+
+    public function mostrar($id)
+    {
+        $site = Site::findOrFail($id);
+        CrawlSeoData::dispatch($site->url, $site->id);
+        $audit = AuditResult::where('site_id', $site->id)->latest()->first();
+
+        return view('site.mostrar', compact('site','audit'));
     }
 }

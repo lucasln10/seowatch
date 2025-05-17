@@ -22,8 +22,14 @@ class SiteController extends Controller
     {
         $validate = $request->validate([
             'title' => 'nullable|string|max:255',
-            'url' => 'required|string|max:255'
-        ]);
+            'url' => 'required|string|max:255|unique:sites,url,' . $id
+        ],
+        [
+            'url.required' => 'O campo URL é obrigatório.',
+            'url.url' => 'Digite uma URL válida.',
+            'url.unique' => 'Este site já foi adicionado.',
+        ]
+        );
 
         $site = Site::findOrFail($id);
         $site->update($validate);
@@ -43,15 +49,14 @@ class SiteController extends Controller
         $validated = $request->validate(
             [
             'title' => 'nullable|string|max:255',
-            'url' => 'required|string|max:255'
+            'url' => 'required|string|max:255|unique:sites,url,'
+            ],
+            [
+            'url.required' => 'O campo URL é obrigatório.',
+            'url.url' => 'Digite uma URL válida.',
+            'url.unique' => 'Este site já foi adicionado.',
             ]
         );
-        $url = $request->input('url');
-        $siteExistente = Site::where('url', $url)->first();
-
-        if ($siteExistente){
-            return redirect()->back()->with('error', 'Este site já foi adicionado.');
-        }
 
         $site = Site::create($validated);
 

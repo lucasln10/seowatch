@@ -17,3 +17,5 @@ Route::get('/site/editar/{id}', [SiteController::class, 'editarSite'])->name('si
 Route::put('site/editar/{id}', [SiteController::class, 'update'])->name('site.update');
 
 Route::delete('site/deletar/{id}', [SiteController::class,'deletar'])->name('site.deletar');
+
+Route::get('/site/{id}', [SiteController::class,'mostrar'])->name('site.mostrar');

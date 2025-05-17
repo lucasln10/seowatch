@@ -67,10 +67,7 @@
                     <td><a href="{{ $site->url }}" target="_blank">{{ $site->url }}</a></td>
                     <td>{{ $site->created_at->format('d/m/Y H:i') }}</td>
                     <td>
-                        {{-- Botão de Editar --}}
                         <a href="{{ route('site.editar', $site->id) }}" class="btn btn-primary btn-sm mb-1">Editar</a>
-
-                        {{-- Formulário de Excluir --}}
                         <form action="{{ route('site.deletar', $site->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este site?');" style="display:inline;">
                             @csrf
                             @method('DELETE')
@@ -78,6 +75,24 @@
                         </form>
                     </td>
                 </tr>
+
+                {{-- Linha adicional para exibir resultado da auditoria --}}
+                @if ($site->auditResult)
+                <tr>
+                    <td colspan="5">
+                        <div class="border rounded bg-light p-3">
+                            <h5 class="mb-3">🔍 Resultado da Auditoria</h5>
+                            <p><strong>Title:</strong> {{ $site->auditResult->title }}</p>
+                            <p><strong>Meta Description:</strong> {{ $site->auditResult->meta_description }}</p>
+                            <p><strong>OG Title:</strong> {{ $site->auditResult->og_title }}</p>
+                            <p><strong>Canonical:</strong> {{ $site->auditResult->canonical }}</p>
+                            <p><strong>H1:</strong> {{ $site->auditResult->h1 }}</p>
+                            <p><strong>H2:</strong> {{ $site->auditResult->h2 }}</p>
+                            <p><strong>H3:</strong> {{ $site->auditResult->h3 }}</p>
+                        </div>
+                    </td>
+                </tr>
+                @endif
                 @endforeach
             </tbody>
         </table>

@@ -1,10 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Sites Cadastrados</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
 </head>
 <body>
     <div class="container mt-5">
@@ -12,9 +12,7 @@
 
         {{-- Mensagens de feedback --}}
         @if (session('success'))
-            <div class="alert alert-success">
-                {{ session('success') }}
-            </div>
+            <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
         @if ($errors->any())
@@ -35,10 +33,10 @@
                     @csrf
                     <div class="row mb-3">
                         <div class="col">
-                            <input type="text" name="title" class="form-control" placeholder="Título do site (opcional)">
+                            <input type="text" name="title" class="form-control" placeholder="Título do site (opcional)" />
                         </div>
                         <div class="col">
-                            <input type="url" name="url" class="form-control" placeholder="https://www.exemplo.com" required>
+                            <input type="url" name="url" class="form-control" placeholder="https://www.exemplo.com" required />
                         </div>
                         <div class="col-auto">
                             <button type="submit" class="btn btn-success">Adicionar</button>
@@ -61,38 +59,43 @@
             </thead>
             <tbody>
                 @foreach($sites as $site)
-                <tr>
-                    <td>{{ $site->id }}</td>
-                    <td>{{ $site->title ?: 'Sem título' }}</td>
-                    <td><a href="{{ $site->url }}" target="_blank">{{ $site->url }}</a></td>
-                    <td>{{ $site->created_at->format('d/m/Y H:i') }}</td>
-                    <td>
-                        <a href="{{ route('site.editar', $site->id) }}" class="btn btn-primary btn-sm mb-1">Editar</a>
-                        <form action="{{ route('site.deletar', $site->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este site?');" style="display:inline;">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
-                        </form>
-                    </td>
-                </tr>
+                    <tr>
+                        <td>{{ $site->id }}</td>
+                        <td>{{ $site->title ?: 'Sem título' }}</td>
+                        <td><a href="{{ $site->url }}" target="_blank" rel="noopener noreferrer">{{ $site->url }}</a></td>
+                        <td>{{ $site->created_at->format('d/m/Y H:i') }}</td>
+                        <td>
+                            <a href="{{ route('site.editar', $site->id) }}" class="btn btn-primary btn-sm mb-1">Editar</a>
+                            <a href="{{ route('site.mostrar', $site->id) }}" class="btn btn-info btn-sm mb-1">Ver Auditoria</a>
+                            <form action="{{ route('site.deletar', $site->id) }}" method="POST" onsubmit="return confirm('Tem certeza que deseja excluir este site?');" style="display:inline;">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                            </form>
+                        </td>
+                    </tr>
 
-                {{-- Linha adicional para exibir resultado da auditoria --}}
-                @if ($site->auditResult)
-                <tr>
-                    <td colspan="5">
-                        <div class="border rounded bg-light p-3">
-                            <h5 class="mb-3">🔍 Resultado da Auditoria</h5>
-                            <p><strong>Title:</strong> {{ $site->auditResult->title }}</p>
-                            <p><strong>Meta Description:</strong> {{ $site->auditResult->meta_description }}</p>
-                            <p><strong>OG Title:</strong> {{ $site->auditResult->og_title }}</p>
-                            <p><strong>Canonical:</strong> {{ $site->auditResult->canonical }}</p>
-                            <p><strong>H1:</strong> {{ $site->auditResult->h1 }}</p>
-                            <p><strong>H2:</strong> {{ $site->auditResult->h2 }}</p>
-                            <p><strong>H3:</strong> {{ $site->auditResult->h3 }}</p>
-                        </div>
-                    </td>
-                </tr>
-                @endif
+                    {{-- Linha adicional para exibir o resultado da auditoria mais recente --}}
+                    @php
+                        $audit = $site->auditResults->sortByDesc('created_at')->first();
+                    @endphp
+
+                    @if ($audit)
+                    <tr>
+                        <td colspan="5">
+                            <div class="border rounded bg-light p-3">
+                                <h5 class="mb-3">🔍 Resultado da Auditoria</h5>
+                                <p><strong>Title:</strong> {{ $audit->title ?: 'Não encontrado' }}</p>
+                                <p><strong>Meta Description:</strong> {{ $audit->meta_description ?: 'Não encontrado' }}</p>
+                                <p><strong>OG Title:</strong> {{ $audit->og_title ?: 'Não encontrado' }}</p>
+                                <p><strong>Canonical:</strong> {{ $audit->canonical ?: 'Não encontrado' }}</p>
+                                <p><strong>H1:</strong> {{ $audit->h1 ?: 'Não encontrado' }}</p>
+                                <p><strong>H2:</strong> {{ $audit->h2 ?: 'Não encontrado' }}</p>
+                                <p><strong>H3:</strong> {{ $audit->h3 ?: 'Não encontrado' }}</p>
+                            </div>
+                        </td>
+                    </tr>
+                    @endif
                 @endforeach
             </tbody>
         </table>

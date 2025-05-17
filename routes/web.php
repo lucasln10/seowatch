@@ -18,4 +18,4 @@ Route::put('site/editar/{id}', [SiteController::class, 'update'])->name('site.up
 
 Route::delete('site/deletar/{id}', [SiteController::class,'deletar'])->name('site.deletar');
 
-Route::get('/site/{id}', [SiteController::class,'mostrar'])->name('site.mostrar');
+Route::get('/site/mostrar{id}', [SiteController::class,'mostrar'])->name('site.mostrar');

@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory; // <-- esta linha
+use App\Models\AuditResult;
 
 class Site extends Model
 {
@@ -11,9 +14,9 @@ class Site extends Model
 
     protected $fillable = ['title', 'url'];
 
-    public function auditResult()
+    public function auditResults(): HasMany
     {
-        return $this->hasOne(AuditResult::class);
+        return $this->hasMany(AuditResult::class);
     }
 }
 

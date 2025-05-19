@@ -21,8 +21,17 @@ class AuditResult extends Model
         'h3',
     ];
 
+    protected $casts = [
+    'feedback' => 'array',
+    ];
+
     public function site()
     {
         return $this->belongsTo(Site::class);
+    }
+
+    public function auditMetrics()
+    {
+        return $this->hasMany(AuditMetric::class);
     }
 }

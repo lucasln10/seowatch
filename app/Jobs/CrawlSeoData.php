@@ -6,7 +6,7 @@ use DOMDocument;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Http;
-use App\Jobs\AuditResult;
+use App\Models\AuditResult;
 
 class CrawlSeoData implements ShouldQueue
 {
@@ -28,6 +28,7 @@ class CrawlSeoData implements ShouldQueue
      */
     public function handle(): void
     {
+        libxml_use_internal_errors(true);
         $respose = Http::get($this->url);
 
         if ($respose->failed()) {
@@ -35,7 +36,6 @@ class CrawlSeoData implements ShouldQueue
         }
         $html = $respose->body();
         $dom = new \DOMDocument();
-        libxml_use_internal_errors(true);
         $dom->loadHTML($html);
         libxml_clear_errors();
 

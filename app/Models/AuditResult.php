@@ -19,6 +19,7 @@ class AuditResult extends Model
         'h1',
         'h2',
         'h3',
+        'status',
     ];
 
     protected $casts = [

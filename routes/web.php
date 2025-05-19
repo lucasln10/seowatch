@@ -1,21 +1,33 @@
 <?php
 
+require __DIR__ . '/settings.php';
+require __DIR__ . '/auth.php';
+
 use App\Http\Controllers\SiteController;
+use App\Http\Controllers\SiteCreateController;
+use App\Http\Controllers\SiteEditController;
+use App\Http\Controllers\SiteDeleteController;
+use App\Http\Controllers\AuditResultController;
+use App\Http\Controllers\PageSpeedController;
+use App\Models\AuditMetric;
 use Illuminate\Support\Facades\Route;
 
 
-require __DIR__ . '/settings.php';
-require __DIR__ . '/auth.php';
 
 
 Route::get('/index', [SiteController::class, 'index'])->name('site.index');
 
-Route::get('site/adicionar', [SiteController::class, 'adicionarSite'])->name('site.adicionar');
-Route::post('site/adicionar', [SiteController::class, 'adicionar'])->name('site.adicionar');
+Route::get('/sites/criar', [SiteCreateController::class, 'create'])->name('site.create');
+Route::post('/sites', [SiteCreateController::class, 'store'])->name('site.store');
 
-Route::get('/site/editar/{id}', [SiteController::class, 'editarSite'])->name('site.editar');
-Route::put('site/editar/{id}', [SiteController::class, 'update'])->name('site.update');
+Route::get('/sites/{id}/editar', [SiteEditController::class, 'edit'])->name('site.edit');
+Route::put('/sites/{id}', [SiteEditController::class, 'update'])->name('site.update');
 
-Route::delete('site/deletar/{id}', [SiteController::class,'deletar'])->name('site.deletar');
+Route::delete('/sites/{id}', [SiteDeleteController::class,'destroy'])->name('site.destroy');
 
-Route::get('/site/mostrar{id}', [SiteController::class,'mostrar'])->name('site.mostrar');
+Route::get('/audit-results', [AuditResultController::class,'index'])->name('audit.index');
+Route::get('/audit-results/{id}', [AuditResultController::class, 'show'])->name('audit.show');
+
+Route::get('/pagespeed/{auditResultId}', [PageSpeedController::class, 'pageSpeed'])->name('pagespeed.pageSpeed');
+
+Route::get('/relatorio/{auditResultId}', [PageSpeedController::class, 'showReport'])->name('audit.report');

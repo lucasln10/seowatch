@@ -109,14 +109,14 @@
         "skipLibCheck": true /* Skip type checking all .d.ts files. */,
         "baseUrl": ".",
         "paths": {
-            "@/*": ["./resources/js/*"],
+            "@/*": ["public/build/assets/js/*"],
             "ziggy-js": ["./vendor/tightenco/ziggy"]
         },
         "jsx": "react-jsx"
     },
     "include": [
-        "resources/js/**/*.ts",
-        "resources/js/**/*.d.ts",
-        "resources/js/**/*.tsx",
+        "public/build/assets/js/**/*.ts",
+        "public/build/assets/js/**/*.d.ts",
+        "public/build/assets/js/**/*.tsx",
     ]
 }

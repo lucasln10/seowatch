@@ -3,182 +3,107 @@
 namespace App\Services;
 
 use App\Models\AuditResult;
-use App\Jobs\CrawlSeoData;
+use App\Services\SeoCrawler;
 
 class SeoAnalyzer
 {
-    public function analyze(CrawlSeoData $crawlSeoData, AuditResult $auditResult)
+    public function analyze(SeoCrawler $seoData, AuditResult $auditResult)
     {
         $mensagens = [];
+        $totais = [
+            'erro' => 0,
+            'aviso' => 0,
+            'ok' => 0
+        ];
 
         // Título
-        $title = $crawlSeoData->title;
+        $title = $seoData->title;
         if (empty($title)) {
-            $mensagens[] = [
-                'tipo' => 'title',
-                'mensagem' => 'Título ausente.',
-                'severidade' => 'erro'
-            ];
+            $mensagens[] = $this->registrar('title', 'Título ausente.', 'erro', $totais);
         } else {
-            $titleLength = strlen($title);
-            if ($titleLength < 50) {
-                $mensagens[] = [
-                    'tipo' => 'title',
-                    'mensagem' => "Título muito curto ({$titleLength} caracteres).",
-                    'severidade' => 'aviso'
-                ];
-            } elseif ($titleLength > 60) {
-                $mensagens[] = [
-                    'tipo' => 'title',
-                    'mensagem' => "Título muito longo ({$titleLength} caracteres).",
-                    'severidade' => 'aviso'
-                ];
-            } else {
-                $mensagens[] = [
-                    'tipo' => 'title',
-                    'mensagem' => "Título com tamanho adequado ({$titleLength} caracteres).",
-                    'severidade' => 'ok'
-                ];
-            }
+            $mensagens[] = $this->avaliarTamanho('title', $title, 50, 60, $totais);
         }
 
         // Meta description
-        $description = $crawlSeoData->metaDescription;
+        $description = $seoData->metaDescription;
         if (empty($description)) {
-            $mensagens[] = [
-                'tipo' => 'description',
-                'mensagem' => 'Meta description ausente.',
-                'severidade' => 'erro'
-            ];
+            $mensagens[] = $this->registrar('description', 'Meta description ausente.', 'erro', $totais);
         } else {
-            $descriptionLength = strlen($description);
-            if ($descriptionLength < 120) {
-                $mensagens[] = [
-                    'tipo' => 'description',
-                    'mensagem' => "Meta description muito curta ({$descriptionLength} caracteres).",
-                    'severidade' => 'aviso'
-                ];
-            } elseif ($descriptionLength > 160) {
-                $mensagens[] = [
-                    'tipo' => 'description',
-                    'mensagem' => "Meta description muito longa ({$descriptionLength} caracteres).",
-                    'severidade' => 'aviso'
-                ];
-            } else {
-                $mensagens[] = [
-                    'tipo' => 'description',
-                    'mensagem' => "Meta description em tamanho ideal ({$descriptionLength} caracteres).",
-                    'severidade' => 'ok'
-                ];
-            }
+            $mensagens[] = $this->avaliarTamanho('description', $description, 120, 160, $totais);
         }
 
         // Headings: H1
-        $h1 = $crawlSeoData->h1Texts;
+        $h1 = $seoData->h1Texts;
         if (empty($h1)) {
-            $mensagens[] = [
-                'tipo' => 'h1',
-                'mensagem' => 'H1 ausente.',
-                'severidade' => 'erro'
-            ];
+            $mensagens[] = $this->registrar('h1', 'H1 ausente.', 'erro', $totais);
         } elseif (count($h1) > 1) {
-            $mensagens[] = [
-                'tipo' => 'h1',
-                'mensagem' => 'Múltiplos H1 encontrados (' . count($h1) . ').',
-                'severidade' => 'aviso'
-            ];
+            $mensagens[] = $this->registrar('h1', 'Múltiplos H1 encontrados (' . count($h1) . ').', 'aviso', $totais);
         } else {
-            $mensagens[] = [
-                'tipo' => 'h1',
-                'mensagem' => 'H1 presente corretamente.',
-                'severidade' => 'ok'
-            ];
+            $mensagens[] = $this->registrar('h1', 'H1 presente corretamente.', 'ok', $totais);
         }
 
         // Hierarquia de headings
-        $h2 = $crawlSeoData->h2Texts;
-        $h3 = $crawlSeoData->h3Texts;
+        $h2 = $seoData->h2Texts;
+        $h3 = $seoData->h3Texts;
 
         if (!empty($h1)) {
             if (!empty($h2)) {
                 if (!empty($h3)) {
-                    $mensagens[] = [
-                        'tipo' => 'headings',
-                        'mensagem' => 'Hierarquia de headings correta: H1 → H2 → H3.',
-                        'severidade' => 'ok'
-                    ];
+                    $mensagens[] = $this->registrar('headings', 'Hierarquia de headings correta: H1 → H2 → H3.', 'ok', $totais);
                 } else {
-                    $mensagens[] = [
-                        'tipo' => 'headings',
-                        'mensagem' => 'H2 presente, mas H3 ausente.',
-                        'severidade' => 'aviso'
-                    ];
+                    $mensagens[] = $this->registrar('headings', 'H2 presente, mas H3 ausente.', 'aviso', $totais);
                 }
             } elseif (!empty($h3)) {
-                $mensagens[] = [
-                    'tipo' => 'headings',
-                    'mensagem' => 'H3 presente sem H2 — possível quebra de hierarquia.',
-                    'severidade' => 'aviso'
-                ];
+                $mensagens[] = $this->registrar('headings', 'H3 presente sem H2 — possível quebra de hierarquia.', 'aviso', $totais);
             } else {
-                $mensagens[] = [
-                    'tipo' => 'headings',
-                    'mensagem' => 'H1 presente, mas H2 e H3 ausentes.',
-                    'severidade' => 'aviso'
-                ];
+                $mensagens[] = $this->registrar('headings', 'H1 presente, mas H2 e H3 ausentes.', 'aviso', $totais);
             }
         }
 
         // Open Graph Title
-        $ogTitle = $crawlSeoData->ogTitle;
+        $ogTitle = $seoData->ogTitle;
         if (empty($ogTitle)) {
-            $mensagens[] = [
-                'tipo' => 'og:title',
-                'mensagem' => 'Open Graph Title ausente.',
-                'severidade' => 'erro'
-            ];
+            $mensagens[] = $this->registrar('og:title', 'Open Graph Title ausente.', 'erro', $totais);
         } else {
-            $ogTitleLength = strlen($ogTitle);
-            if ($ogTitleLength < 60) {
-                $mensagens[] = [
-                    'tipo' => 'og:title',
-                    'mensagem' => "Open Graph Title muito curto ({$ogTitleLength} caracteres).",
-                    'severidade' => 'aviso'
-                ];
-            } elseif ($ogTitleLength > 60) {
-                $mensagens[] = [
-                    'tipo' => 'og:title',
-                    'mensagem' => "Open Graph Title muito longo ({$ogTitleLength} caracteres).",
-                    'severidade' => 'aviso'
-                ];
-            } else {
-                $mensagens[] = [
-                    'tipo' => 'og:title',
-                    'mensagem' => "Open Graph Title com tamanho ideal ({$ogTitleLength} caracteres).",
-                    'severidade' => 'ok'
-                ];
-            }
+            $mensagens[] = $this->avaliarTamanho('og:title', $ogTitle, 60, 60, $totais); // pode ajustar limites se quiser
         }
 
         // Canonical
-        $canonical = $crawlSeoData->canonical;
-        if (empty($canonical)) {
-            $mensagens[] = [
-                'tipo' => 'canonical',
-                'mensagem' => 'Canonical ausente.',
-                'severidade' => 'erro'
-            ];
+        $canonical = $seoData->canonical;
+        if (empty($canonical) || !filter_var($canonical, FILTER_VALIDATE_URL)) {
+            $mensagens[] = $this->registrar('canonical', 'Canonical ausente ou inválido.', 'erro', $totais);
         } else {
-            $mensagens[] = [
-                'tipo' => 'canonical',
-                'mensagem' => 'Canonical presente corretamente.',
-                'severidade' => 'ok'
-            ];
+            $mensagens[] = $this->registrar('canonical', 'Canonical presente corretamente.', 'ok', $totais);
         }
-        
-        $auditResult->fedback = $mensagens;
+
+        // Salvando
+        $auditResult->feedback = $mensagens;
+        $auditResult->erro_count = $totais['erro'];
+        $auditResult->aviso_count = $totais['aviso'];
+        $auditResult->ok_count = $totais['ok'];
         $auditResult->save();
 
         return $mensagens;
+    }
+
+    private function avaliarTamanho(string $campo, string $valor, int $min, int $max, array &$totais): array
+    {
+        $len = strlen($valor);
+        if ($len < $min) {
+            return $this->registrar($campo, ucfirst($campo) . " muito curto ({$len} caracteres).", 'aviso', $totais);
+        } elseif ($len > $max) {
+            return $this->registrar($campo, ucfirst($campo) . " muito longo ({$len} caracteres).", 'aviso', $totais);
+        }
+        return $this->registrar($campo, ucfirst($campo) . " com tamanho ideal ({$len} caracteres).", 'ok', $totais);
+    }
+
+    private function registrar(string $tipo, string $mensagem, string $severidade, array &$totais): array
+    {
+        $totais[$severidade]++;
+        return [
+            'tipo' => $tipo,
+            'mensagem' => $mensagem,
+            'severidade' => $severidade
+        ];
     }
 }

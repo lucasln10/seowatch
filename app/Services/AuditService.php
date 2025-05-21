@@ -9,33 +9,32 @@ use Illuminate\Support\Facades\Http;
 
 class AuditService
 {
-    protected $pageSpeed;
-
-    public function __construct(PageSpeedService $pageSpeed)
+    public function __construct(PageSpeedService $pageSpeed, SeoCrawler $seoCrawler)
     {
         $this->pageSpeed = $pageSpeed;
+        $this->seoCrawler = $seoCrawler;
     }
 
-    public function runAudit(int $auditResultId): array
+    public function runAudit(AuditResult $auditResult): array
     {
+        if (!$auditResult || !$auditResult->id) {
+            throw new \InvalidArgumentException("AuditResult inválido ou não persistido.");
+        }
         try {
             $avisos = [];
-            $auditResult = AuditResult::find($auditResultId);
-            if (!$auditResult) {
-                return ['feedback' => ['Relatório não encontrado.']];
-            }
             $url = $auditResult->site->url;
             $auditResult->update(['status' => 'processando']);
 
             // 🕷 CRAWLER SEO ON-PAGE
-            $seoData = $this->crawlSeoData($url);
+            $seoData = $this->seoCrawler->extract($url);
+            \Log::info(print_r($seoData, true));
             if (!empty($seoData)) {
                 $auditResult->update($seoData);
             }
 
             $dados = $this->pageSpeed->runAnalysis($url);
 
-            $score = $dados['lighthouseResult']['categories']['performance']['score'] ?? null;
+            $score = data_get($dados, 'lighthouseResult.categories.performance.score');
             $fcp = $dados['lighthouseResult']['audits']['first-contentful-paint']['displayValue'] ?? null;
             $speedIndex = $dados['lighthouseResult']['audits']['speed-index']['displayValue'] ?? null;
             $lcp = $dados['loadingExperience']['metrics']['LARGEST_CONTENTFUL_PAINT_MS']['percentile'] ?? null;
@@ -62,13 +61,14 @@ class AuditService
 
             AuditMetric::create([
                 'audit_result_id' => $auditResult->id,
-                'score' => $scoreInt,
+                'score' => $score !== null ? floatval($score * 100) : null,
                 'fcp' => $fcpMs,
                 'speed_index' => $speedIndexMs,
                 'lcp' => $lcp,
                 'cls' => $cls,
                 'feedback' => $avisos,
             ]);
+            \Log::info('SEO DATA EXTRAÍDO:', $seoData);
             $auditResult->update([
                 'status' => 'concluído',
                 'feedback' => $avisos,
@@ -83,16 +83,14 @@ class AuditService
                 'feedback' => $avisos,
             ];
         } catch (\Exception $e) {
-            $avisos[] = 'Erro ao executar PageSpeed: ' . $e->getMessage();
+            \Log::error("Erro ao executar auditoria: {$e->getMessage()}", ['auditResultId' => $auditResult->id ?? null]);
+            report($e);
+            $auditResult->update([
+                'status' => 'error',
+                'feedback' => ['Erro ao executar auditoria: ' . $e->getMessage()],
+            ]);
 
-            if (isset($auditResult)) {
-                $auditResult->update([
-                    'status' => 'erro',
-                    'feedback' => $avisos,
-                ]);
-            }
-
-            return ['feedback' => $avisos];
+            return ['feedback' => ['Erro ao executar auditoria: ' . $e->getMessage()]];
         }
     }
 
@@ -135,7 +133,6 @@ class AuditService
             'h1' => $getTextFromTags('h1'),
             'h2' => $getTextFromTags('h2'),
             'h3' => $getTextFromTags('h3'),
-            'status' => 'concluído'
         ];
     }
 }

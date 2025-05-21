@@ -11,7 +11,7 @@ class SiteController extends Controller
 {
     public function index()
     {
-        $sites = Site::all();
+        $sites = Site::with('auditResults')->get();
         return view('site.index', compact('sites'));
     }
 }

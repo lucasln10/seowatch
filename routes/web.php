@@ -25,8 +25,9 @@ Route::put('/sites/{id}', [SiteEditController::class, 'update'])->name('site.upd
 
 Route::delete('/sites/{id}', [SiteDeleteController::class,'destroy'])->name('site.destroy');
 
-Route::get('/audit-results', [AuditResultController::class,'index'])->name('audit.index');
-Route::get('/audit-results/{id}', [AuditResultController::class, 'show'])->name('audit.show');
+Route::get('/audit', [AuditResultController::class,'index'])->name('audit.index');
+Route::get('/audit/{id}', [AuditResultController::class, 'show'])->name('audit.show');
+Route::post('/audit/{id}/run', [AuditResultController::class, 'runAudit'])->name('audit.run');
 
 Route::get('/pagespeed/{auditResultId}', [PageSpeedController::class, 'pageSpeed'])->name('pagespeed.pageSpeed');
 

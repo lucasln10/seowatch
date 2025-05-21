@@ -3,6 +3,14 @@
 @section('content')
 
 <div class="container">
+    @if(session('status'))
+        <div class="alert alert-success">{{ session('status') }}</div>
+    @endif
+
+    <form action="{{ route('audit.run', $auditResult ? $auditResult->site->id : request()->route('id')) }}" method="POST" class="mb-4">
+        @csrf
+        <button type="submit" class="btn btn-primary">Rodar Auditoria</button>
+    </form>
 
     @if($auditResult)
         <h1 class="mb-4">Relatórios de Auditoria - {{ $auditResult->site->url }}</h1>
